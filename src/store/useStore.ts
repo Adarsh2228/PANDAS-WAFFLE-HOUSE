@@ -62,15 +62,15 @@ export interface MenuItemData {
   description: string;
   basePrice: number;
   category:
-    | 'Sandwich Waffle'
-    | 'Belgium Waffle'
-    | 'Bowl Cake'
-    | 'Pan Cake'
-    | 'Trending Food'
-    | 'Most Ordered'
-    | 'Offers'
-    | 'Waffle Bowls'
-    | 'Cakes & Desserts';
+  | 'Sandwich Waffle'
+  | 'Belgium Waffle'
+  | 'Bowl Cake'
+  | 'Pan Cake'
+  | 'Trending Food'
+  | 'Most Ordered'
+  | 'Offers'
+  | 'Waffle Bowls'
+  | 'Cakes & Desserts';
   imageUrl: string;
   isTrending?: boolean;
   isOffer?: boolean;
@@ -195,7 +195,7 @@ export const useStore = create<StoreState>()(
       tableNumber: '',
       ordersHistory: [],
       isLoyaltyEnabled: true,
-      masterPassword: 'alstmasinm',
+      masterPassword: process.env.NEXT_PUBLIC_MASTER_PASSWORD || '',
 
       // Master state — defaults
       menuItems: ALL_MENU_ITEMS,
@@ -208,12 +208,12 @@ export const useStore = create<StoreState>()(
       productVisibility: {},
 
       // Cart actions
-      setOrderType:       (orderType)       => set({ orderType }),
+      setOrderType: (orderType) => set({ orderType }),
       setDeliveryAddress: (deliveryAddress) => set({ deliveryAddress }),
-      setCustomerName:    (customerName)    => set({ customerName }),
-      setCustomerPhone:   (customerPhone)   => set({ customerPhone }),
-      setIsCartOpen:      (isCartOpen)      => set({ isCartOpen }),
-      setIsOrdersOpen:    (isOrdersOpen)    => set({ isOrdersOpen }),
+      setCustomerName: (customerName) => set({ customerName }),
+      setCustomerPhone: (customerPhone) => set({ customerPhone }),
+      setIsCartOpen: (isCartOpen) => set({ isCartOpen }),
+      setIsOrdersOpen: (isOrdersOpen) => set({ isOrdersOpen }),
       setIsPandaChefOpen: (isPandaChefOpen) => set({ isPandaChefOpen }),
       setIsLoyaltyEnabled: (enabled) => set({ isLoyaltyEnabled: enabled }),
       setTableNumber: (tableNumber) => set({ tableNumber }),
@@ -226,7 +226,7 @@ export const useStore = create<StoreState>()(
         set((state) => ({
           cart: state.cart.map((item) => {
             if (item.cartItemId === cartItemId) {
-              const newQty    = Math.max(1, item.quantity + delta);
+              const newQty = Math.max(1, item.quantity + delta);
               const unitPrice = item.totalPrice / item.quantity;
               return { ...item, quantity: newQty, totalPrice: unitPrice * newQty };
             }
@@ -270,11 +270,11 @@ export const useStore = create<StoreState>()(
         })),
 
       // Master actions
-      setWaffleBases:      (waffleBases)       => set({ waffleBases }),
-      setExtraToppings:    (extraToppings)      => set({ extraToppings }),
-      setBlogPosts:        (blogPosts)          => set({ blogPosts }),
-      setProductImages:    (productImages)      => set({ productImages }),
-      setProductVisibility:(productVisibility)  => set({ productVisibility }),
+      setWaffleBases: (waffleBases) => set({ waffleBases }),
+      setExtraToppings: (extraToppings) => set({ extraToppings }),
+      setBlogPosts: (blogPosts) => set({ blogPosts }),
+      setProductImages: (productImages) => set({ productImages }),
+      setProductVisibility: (productVisibility) => set({ productVisibility }),
 
       toggleBlogPost: (id) =>
         set((state) => ({
