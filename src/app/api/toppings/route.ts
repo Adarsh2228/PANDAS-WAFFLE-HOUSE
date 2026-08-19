@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (toppings.length === 0) {
-      for (const t of DEFAULT_EXTRA_TOPPINGS) {
+      for (const t of DEFAULT_TOPPINGS) {
         await prisma.topping.upsert({
           where: { id: t.id },
           create: {
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('API /api/toppings GET error:', error);
     return NextResponse.json(
-      { success: false, data: DEFAULT_EXTRA_TOPPINGS, error: error?.message },
+      { success: false, data: DEFAULT_TOPPINGS, error: error?.message },
       { status: 500 }
     );
   }

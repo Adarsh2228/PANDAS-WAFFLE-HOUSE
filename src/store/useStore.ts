@@ -29,6 +29,7 @@ export interface Story {
   thumbnailUrl?: string;
   caption: string;
   createdAt: number;
+  expiresAt?: number;
 }
 
 export interface BlogPost {
@@ -39,10 +40,11 @@ export interface BlogPost {
   emoji: string;
   readTime: string;
   color: string;
-  bgColor: string;
+  bgColor?: string;
   imageUrl: string;
   date: string;
   enabled: boolean;
+  content?: string;
   instagramUrl?: string;
   expiresAt?: number; // timestamp
   comments?: BlogComment[];
