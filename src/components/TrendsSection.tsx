@@ -34,7 +34,7 @@ export default function TrendsSection({ onOpenDetail, onOpenCustomize }: TrendsS
 
   // Sort all menu items by their real order counts — only show ordered items
   const orderedItems = (menuItems || [])
-    .filter((item) => productVisibility[item.id] ?? true)
+    .filter((item) => productVisibility[item.id] ?? (item.isEnabled !== false))
     .map((item) => ({ ...item, orderCount: productOrderCounts[item.id] ?? 0 }))
     .filter((item) => item.orderCount > 0)
     .sort((a, b) => b.orderCount - a.orderCount)

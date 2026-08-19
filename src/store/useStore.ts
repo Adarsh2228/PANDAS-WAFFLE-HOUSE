@@ -56,6 +56,23 @@ export interface ReviewItem {
   date: string;
 }
 
+export interface Offer {
+  id: string;
+  title: string;
+  subtitle?: string;
+  badge: string;
+  badgeColor: string;
+  imageUrl?: string;
+  instagramUrl?: string;
+  postType: 'instagram' | 'image' | 'url';
+  gradient: string;
+  ctaText: string;
+  ctaUrl?: string;
+  isEnabled: boolean;
+  expiresAt?: number; // unix timestamp
+  createdAt?: number;
+}
+
 export interface MenuItemData {
   id: string;
   name: string;
@@ -72,6 +89,8 @@ export interface MenuItemData {
   | 'Waffle Bowls'
   | 'Cakes & Desserts';
   imageUrl: string;
+  images?: string[];
+  isEnabled?: boolean;
   isTrending?: boolean;
   isOffer?: boolean;
   rating: number;
@@ -96,7 +115,7 @@ export interface CartItem {
 }
 
 // ─── DEFAULT WAFFLE BASES ────────────────────────────────────────────────────
-const DEFAULT_WAFFLE_BASES: WaffleBaseOption[] = [
+export const DEFAULT_WAFFLE_BASES: WaffleBaseOption[] = [
   { id: 'base-1', name: 'Classic Golden Belgian Waffle', description: 'Crispy exterior, soft airy interior', price: 0, icon: '🧇' },
   { id: 'base-2', name: 'Double Chocolate Dark Waffle', description: 'Infused with 70% dark Belgian cocoa', price: 30, icon: '🍩' },
   { id: 'base-3', name: 'Crispy Golden Waffle Bowl', description: 'Bowl shape perfect for sauces and toppings', price: 25, icon: '🥣' },
@@ -105,7 +124,7 @@ const DEFAULT_WAFFLE_BASES: WaffleBaseOption[] = [
 ];
 
 // ─── DEFAULT TOPPINGS ────────────────────────────────────────────────────────
-const DEFAULT_TOPPINGS: ToppingOption[] = [
+export const DEFAULT_TOPPINGS: ToppingOption[] = [
   { id: 'top-1', name: 'Warm Belgian Chocolate Drizzle', price: 30 },
   { id: 'top-2', name: 'Extra Nutella Spread', price: 40 },
   { id: 'top-3', name: 'Fresh Blueberries & Raspberries', price: 40 },
@@ -141,6 +160,7 @@ interface StoreState {
   extraToppings: ToppingOption[];
   blogPosts: BlogPost[];
   stories: Story[];
+  offers: Offer[];
   productOrderCounts: Record<string, number>;   // productId → total orders
   productImages: Record<string, string[]>;       // productId → [imageUrl, ...]
   productVisibility: Record<string, boolean>;    // productId → visible?
@@ -167,6 +187,7 @@ interface StoreState {
   setMasterPassword: (pwd: string) => void;
 
   // Actions — Master customization
+  setMenuItems: (items: MenuItemData[]) => void;
   setWaffleBases: (bases: WaffleBaseOption[]) => void;
   setExtraToppings: (toppings: ToppingOption[]) => void;
   setBlogPosts: (posts: BlogPost[]) => void;
@@ -175,8 +196,10 @@ interface StoreState {
   toggleBlogPost: (id: string) => void;
   setProductOrderCount: (productId: string, count: number) => void;
   updateMenuItem: (item: MenuItemData) => void;
+  setStories: (stories: Story[]) => void;
   addStory: (story: Story) => void;
   deleteStory: (id: string) => void;
+  setOffers: (offers: Offer[]) => void;
   addBlogComment: (postId: string, comment: BlogComment) => void;
 }
 
@@ -203,6 +226,7 @@ export const useStore = create<StoreState>()(
       extraToppings: DEFAULT_TOPPINGS,
       blogPosts: DEFAULT_BLOG_POSTS,
       stories: [],
+      offers: [],
       productOrderCounts: {},
       productImages: {},
       productVisibility: {},
@@ -270,6 +294,7 @@ export const useStore = create<StoreState>()(
         })),
 
       // Master actions
+      setMenuItems: (menuItems) => set({ menuItems }),
       setWaffleBases: (waffleBases) => set({ waffleBases }),
       setExtraToppings: (extraToppings) => set({ extraToppings }),
       setBlogPosts: (blogPosts) => set({ blogPosts }),
@@ -295,11 +320,15 @@ export const useStore = create<StoreState>()(
           ),
         })),
 
+      setStories: (stories) => set({ stories }),
+
       addStory: (story) =>
         set((state) => ({ stories: [...state.stories, story] })),
 
       deleteStory: (id) =>
         set((state) => ({ stories: state.stories.filter((s) => s.id !== id) })),
+
+      setOffers: (offers) => set({ offers }),
 
       addBlogComment: (postId, comment) =>
         set((state) => ({
@@ -310,6 +339,19 @@ export const useStore = create<StoreState>()(
           ),
         })),
     }),
-    { name: 'panda-waffles-store-v2' }
+    {
+      name: 'panda-waffles-cart-v3',
+      partialize: (state) => ({
+        cart: state.cart,
+        ordersHistory: state.ordersHistory,
+        bambooPoints: state.bambooPoints,
+        orderType: state.orderType,
+        deliveryAddress: state.deliveryAddress,
+        customerName: state.customerName,
+        customerPhone: state.customerPhone,
+        tableNumber: state.tableNumber,
+        productOrderCounts: state.productOrderCounts,
+      }),
+    }
   )
 );

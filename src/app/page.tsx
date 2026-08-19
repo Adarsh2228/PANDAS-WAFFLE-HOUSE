@@ -1,23 +1,43 @@
 import prisma from '@/lib/prisma';
 import HomeClient from '@/components/HomeClient';
-import { MOCK_MENU_ITEMS } from '@/data/mockItems';
+import { ALL_MENU_ITEMS } from '@/data/menuData';
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function Home() {
   let menuItems: any[] = [];
-  
+  let dbConnected = false;
+
   if (process.env.DATABASE_URL) {
     try {
-      menuItems = await prisma.menuItem.findMany();
+      const dbItems = await prisma.menuItem.findMany({
+        where: { isEnabled: true },
+        orderBy: { orderIndex: 'asc' },
+      });
+
+      dbConnected = true;
+      menuItems = dbItems.map((item) => {
+        let imagesList: string[] = [];
+        try {
+          if (item.images) imagesList = JSON.parse(item.images);
+          else if (item.imageUrl) imagesList = [item.imageUrl];
+        } catch {
+          imagesList = item.imageUrl ? [item.imageUrl] : [];
+        }
+        return {
+          ...item,
+          images: imagesList,
+        };
+      });
     } catch (error) {
-      console.warn("Failed to fetch menu items from DB, using fallback data.");
+      console.warn('Failed to fetch active menu items from DB, using fallback menu data.');
     }
   }
 
-  // Fallback to MOCK_MENU_ITEMS if DB is not connected or empty
-  if (menuItems.length === 0) {
-    menuItems = MOCK_MENU_ITEMS;
+  // Only fallback if DB query failed or DB not configured
+  if (!dbConnected) {
+    menuItems = ALL_MENU_ITEMS;
   }
 
   return <HomeClient initialMenuItems={menuItems} />;

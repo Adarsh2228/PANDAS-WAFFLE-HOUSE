@@ -21,7 +21,7 @@ export default function OffersSection({ onOpenCustomize }: OffersSectionProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const { menuItems, productVisibility } = useStore();
 
-  const offers = (menuItems || []).filter((i) => i.category === 'Offers' && (productVisibility[i.id] ?? true));
+  const offers = (menuItems || []).filter((i) => i.category === 'Offers' && (productVisibility[i.id] ?? (i.isEnabled !== false)));
 
   useEffect(() => {
     const observer = new IntersectionObserver(

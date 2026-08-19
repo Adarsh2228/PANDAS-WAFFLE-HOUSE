@@ -14,6 +14,7 @@ import PandaChefModal from './PandaChefModal';
 import OrdersModal from './OrdersModal';
 import SplashScreen from './SplashScreen';
 import StatusRow from './StatusRow';
+import LiveOffersSection from './LiveOffersSection';
 
 import { CATEGORY_CONFIG } from '@/data/menuData';
 import { MenuItemData, useStore } from '@/store/useStore';
@@ -106,19 +107,54 @@ export default function HomeClient({ initialMenuItems }: HomeClientProps) {
   const [selectedDetailItem,    setSelectedDetailItem]    = useState<MenuItemData | null>(null);
   const [selectedCustomizeItem, setSelectedCustomizeItem] = useState<MenuItemData | null>(null);
 
-  const { setIsPandaChefOpen, menuItems, productVisibility } = useStore();
+  const { setIsPandaChefOpen, menuItems, setMenuItems, setProductVisibility } = useStore();
+
+  // Sync initialMenuItems from server render
+  useEffect(() => {
+    if (initialMenuItems !== undefined) {
+      setMenuItems(initialMenuItems);
+      const vis: Record<string, boolean> = {};
+      initialMenuItems.forEach((item) => {
+        vis[item.id] = true;
+      });
+      setProductVisibility(vis);
+    }
+  }, [initialMenuItems]);
+
+  // Live fetch from DB on mount and window focus
+  useEffect(() => {
+    const fetchActiveProducts = () => {
+      fetch('/api/products', { cache: 'no-store' })
+        .then((r) => r.json())
+        .then((json) => {
+          if (json.success && Array.isArray(json.data)) {
+            setMenuItems(json.data);
+            const vis: Record<string, boolean> = {};
+            json.data.forEach((item: MenuItemData) => {
+              vis[item.id] = true;
+            });
+            setProductVisibility(vis);
+          }
+        })
+        .catch(() => {});
+    };
+
+    fetchActiveProducts();
+    window.addEventListener('focus', fetchActiveProducts);
+    return () => window.removeEventListener('focus', fetchActiveProducts);
+  }, []);
 
   const menuCategories = useMemo(() => {
-    // Only show items that are visible
-    const visibleItems = (menuItems || []).filter(item => productVisibility[item.id] ?? true);
+    // menuItems contains only active enabled products from DB
+    const activeList = menuItems || [];
     
     return [
-      { key: 'Sandwich Waffle', items: visibleItems.filter(i => i.category === 'Sandwich Waffle'), pandaSide: 'left' as const },
-      { key: 'Belgium Waffle',  items: visibleItems.filter(i => i.category === 'Belgium Waffle'),  pandaSide: 'right' as const },
-      { key: 'Bowl Cake',       items: visibleItems.filter(i => i.category === 'Bowl Cake'),       pandaSide: 'left' as const },
-      { key: 'Pan Cake',        items: visibleItems.filter(i => i.category === 'Pan Cake'),        pandaSide: 'right' as const },
+      { key: 'Sandwich Waffle', items: activeList.filter(i => i.category === 'Sandwich Waffle'), pandaSide: 'left' as const },
+      { key: 'Belgium Waffle',  items: activeList.filter(i => i.category === 'Belgium Waffle'),  pandaSide: 'right' as const },
+      { key: 'Bowl Cake',       items: activeList.filter(i => i.category === 'Bowl Cake'),       pandaSide: 'left' as const },
+      { key: 'Pan Cake',        items: activeList.filter(i => i.category === 'Pan Cake'),        pandaSide: 'right' as const },
     ];
-  }, [menuItems, productVisibility]);
+  }, [menuItems]);
 
   // Category filter selection → scroll to section
   const handleCategorySelect = (cat: string) => {
@@ -170,6 +206,11 @@ export default function HomeClient({ initialMenuItems }: HomeClientProps) {
             <StatusRow />
           </div>
 
+          {/* Live Offers from Master Portal */}
+          <div className="relative z-10">
+            <LiveOffersSection />
+          </div>
+
           {/* Main Body */}
           <main id="menu" className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 pt-6 space-y-8 sm:space-y-12 relative z-10">
             {/* Hero Banner with Search Bar */}
@@ -205,7 +246,16 @@ export default function HomeClient({ initialMenuItems }: HomeClientProps) {
             ) : (
               <>
                 {/* Normal menu display filtered by active category */}
-                {showMenuCats &&
+                {menuCategories.every((c) => c.items.length === 0) ? (
+                  <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                    <span className="text-6xl inline-block panda-bounce">🐼🥞</span>
+                    <h3 className="text-lg font-extrabold text-slate-800">No Waffles Available Right Now</h3>
+                    <p className="text-sm text-slate-500 max-w-xs mx-auto">
+                      All products are currently disabled or being prepared. Check back shortly!
+                    </p>
+                  </div>
+                ) : (
+                  showMenuCats &&
                   menuCategories.filter(
                     ({ key, items }) => (activeCategory === 'All' || activeCategory === key) && items.length > 0
                   ).map(({ key, items, pandaSide }) => (
@@ -219,7 +269,7 @@ export default function HomeClient({ initialMenuItems }: HomeClientProps) {
                       pandaSide={pandaSide}
                     />
                   ))
-                }
+                )}
 
                 {/* Offers / Trends / Blogs are now separate pages via the header nav */}
               </>

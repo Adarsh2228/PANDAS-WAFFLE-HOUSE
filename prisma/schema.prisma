@@ -11,32 +11,101 @@ datasource db {
 }
 
 model MenuItem {
-  id          String   @id @default(cuid())
+  id          String   @id
   name        String
   description String   @db.Text
   basePrice   Float
   category    String
-  imageUrl    String
+  imageUrl    String   @db.LongText
+  images      String?  @db.LongText // JSON array string of additional uploaded image URLs/Base64
+  isEnabled   Boolean  @default(true) // Enable/disable flag from master page
   isTrending  Boolean  @default(false)
+  isOffer     Boolean  @default(false)
+  rating      Float    @default(0)
+  reviewCount Int      @default(0)
+  prepTime    String   @default("5-7 mins")
+  priceSmall  Float?
+  priceBig    Float?
+  price5pc    Float?
+  price10pc   Float?
+  subtitle    String?  @db.Text
+  orderIndex  Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   reviews     Review[]
 }
 
+model WaffleBase {
+  id          String   @id
+  name        String
+  description String   @db.Text
+  price       Float
+  icon        String   @default("🧇")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model Topping {
-  id        String   @id @default(cuid())
+  id        String   @id
   name      String
   price     Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+model BlogPost {
+  id           String   @id
+  title        String
+  subtitle     String   @db.Text
+  category     String
+  emoji        String   @default("🧇")
+  readTime     String   @default("3 min")
+  color        String   @default("#059669")
+  bgColor      String   @default("#ECFDF5")
+  imageUrl     String   @db.LongText
+  date         String
+  enabled      Boolean  @default(true)
+  content      String?  @db.LongText
+  instagramUrl String?  @db.Text
+  expiresAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Story {
+  id           String   @id
+  imageUrl     String   @db.LongText
+  thumbnailUrl String?  @db.LongText
+  caption      String   @db.Text
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime?
+}
+
 model Review {
   id         String   @id @default(cuid())
   menuItemId String
   menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  authorName String   @default("Panda Fan")
   rating     Int
   comment    String?  @db.Text
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model Offer {
+  id           String    @id @default(cuid())
+  title        String
+  subtitle     String?   @db.Text
+  badge        String    @default("OFFER")
+  badgeColor   String    @default("#059669")
+  imageUrl     String?   @db.LongText
+  instagramUrl String?   @db.Text
+  postType     String    @default("image")   // "instagram" | "image" | "url"
+  gradient     String    @default("135deg,#065F46,#059669")
+  ctaText      String    @default("Order Now")
+  ctaUrl       String?
+  isEnabled    Boolean   @default(true)
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }

@@ -10,7 +10,18 @@ export default function BlogsSection() {
   const [isVisible, setIsVisible] = useState(false);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
-  const { blogPosts } = useStore();
+  const { blogPosts, setBlogPosts } = useStore();
+
+  useEffect(() => {
+    fetch('/api/blogs', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data)) {
+          setBlogPosts(json.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(

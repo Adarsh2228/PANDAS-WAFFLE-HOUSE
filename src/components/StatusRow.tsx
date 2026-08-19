@@ -1,16 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '@/store/useStore';
 import StoriesViewer from './StoriesViewer';
 
 export default function StatusRow() {
-  const { stories } = useStore();
+  const { stories, setStories } = useStore();
   const [storiesOpen, setStoriesOpen] = useState(false);
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
 
-  // For demonstration, we group stories by user, but here we just show recent ones
-  const recentStories = stories?.filter((s) => Date.now() - s.createdAt < 86400000) || [];
+  useEffect(() => {
+    fetch('/api/stories', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data)) {
+          setStories(json.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Show stories posted within the last 48 hours or unexpired
+  const recentStories = (stories || []).filter((s) => {
+    if (s.expiresAt && s.expiresAt < Date.now()) return false;
+    const created = s.createdAt ? Number(s.createdAt) : Date.now();
+    return Date.now() - created < 172800000;
+  });
   
   if (recentStories.length === 0) return null;
 

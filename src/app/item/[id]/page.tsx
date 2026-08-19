@@ -2,7 +2,10 @@ import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import ItemDetailClient from '@/components/ItemDetailClient';
 
-export const revalidate = 60;
+import { ALL_MENU_ITEMS } from '@/data/menuData';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function ItemPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -28,25 +31,29 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
   }
 
   if (!menuItem) {
-    // Return a dummy object if DB is not seeded so UI can be tested
-    menuItem = {
-      id,
-      name: 'Dummy Waffle',
-      description: 'A delicious placeholder waffle for testing.',
-      basePrice: 150,
-      category: 'Offers',
-      imageUrl: '',
-      isTrending: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      reviews: [
-        { id: 'r1', menuItemId: id, rating: 5, comment: 'So good!', createdAt: new Date(), updatedAt: new Date() }
-      ]
-    };
-    toppings = [
-      { id: 't1', name: 'Extra Chocolate', price: 20, createdAt: new Date(), updatedAt: new Date() },
-      { id: 't2', name: 'Strawberries', price: 30, createdAt: new Date(), updatedAt: new Date() },
-    ];
+    const found = ALL_MENU_ITEMS.find((i) => i.id === id);
+    if (found) {
+      menuItem = {
+        ...found,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        reviews: [],
+      };
+    } else {
+      menuItem = {
+        id,
+        name: 'Waffle House Special',
+        description: 'A delicious panda specialty waffle freshly made for you.',
+        basePrice: 150,
+        category: 'Sandwich Waffle',
+        imageUrl: 'https://images.unsplash.com/photo-1568051243851-f9b136146e97?auto=format&fit=crop&q=80&w=800',
+        isTrending: true,
+        isEnabled: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        reviews: [],
+      };
+    }
   }
 
   return (
