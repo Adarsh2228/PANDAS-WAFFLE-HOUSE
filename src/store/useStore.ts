@@ -136,6 +136,7 @@ export const DEFAULT_TOPPINGS: ToppingOption[] = [
   { id: 'top-7', name: 'Caramel Sauce Drizzle', price: 25 },
   { id: 'top-8', name: 'Rainbow Sprinkles', price: 15 },
 ];
+export const DEFAULT_EXTRA_TOPPINGS = DEFAULT_TOPPINGS;
 
 // ─── DEFAULT BLOG POSTS ──────────────────────────────────────────────────────
 const DEFAULT_BLOG_POSTS: BlogPost[] = [];
